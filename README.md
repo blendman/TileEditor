@@ -7,7 +7,7 @@ Tile Editor is developped in [Purebasic][1] and has been created by Blendman, wi
 
 ## Screenshots
 
-![Tile Editor 0.2](https://github.com/blendman/animatoon/blob/main/screenshots/animatoon0.588.7.jpg)
+![Tile Editor 0.2] (https://github.com/blendman/TileEditor/blob/main/screenshots/tileeditor0.2.jpg)
 
 
 ## Download ###
@@ -17,9 +17,9 @@ Tile Editor is developped in [Purebasic][1] and has been created by Blendman, wi
 # Windows : 
 You can download Tile Editor from [the release directory][release directory (windows)] or from the [Github releases][gh-release] 
 
-[release directory (windows)]: https://github.com/blendman/animatoon/tree/main/_release/windows
+[release directory (windows)]: https://github.com/blendman/TileEditor/tree/main/_release/windows
 
-[gh-release]: https://github.com/blendman/animatoon/releases
+[gh-release]: https://github.com/blendman/TileEditor/releases
 
 
 # Linux, MacOS
