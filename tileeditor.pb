@@ -177,7 +177,24 @@ If OpenWindow(0, 0, 0, w, h, "Tile Editor "+#VersionProgram,
   If PanelGadget(#G_panelTile, x, y, w, h)
     AddGadgetItem(#G_panelTile, -1, "Tile set")
     
-    If LoadImage(#imageTileset, "LJ822U2.png")
+    If LoadImage(#imageTileset, "data\tileset\LJ822U2.png") = 0
+    EndIf
+    If CreateImage(#imageTileset, 512, 512)
+      If StartDrawing(ImageOutput(#imageTileset))
+        ; draw random box
+        wc = ImageWidth(#imageTileset)/(tileW/2)
+        hc = ImageWidth(#imageTileset)/(tileH/2)
+        For i =0 To wc
+          For j = 0 To hc
+            Box(i*tileW/2, j*tileH/2, tilew/2, tileH/2, RGB(Random(255), Random(255), Random(255)))
+          Next
+        Next
+        
+        StopDrawing()
+      EndIf
+    EndIf
+    
+    If IsImage(#imageTileset)
       ResizeImage(#imageTileset, ImageWidth(#imageTileset)*2, ImageHeight(#imageTileset)*2,#PB_Image_Raw)
       wc = ImageWidth(#imageTileset)+20
       hc = ImageWidth(#imageTileset)+20
@@ -420,7 +437,7 @@ If OpenWindow(0, 0, 0, w, h, "Tile Editor "+#VersionProgram,
 EndIf
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x86)
-; CursorPosition = 156
-; FirstLine = 80
-; Folding = +17-4v-fv-4-
+; CursorPosition = 188
+; FirstLine = 129
+; Folding = +37--84-v4-8-
 ; EnableXP
