@@ -7,7 +7,7 @@ Tile Editor is developped in [Purebasic][1] and has been created by Blendman, wi
 
 ## Screenshots
 
-[Tile Editor 0.2] (https://github.com/blendman/TileEditor/blob/main/screenshots/tileeditor0.2.jpg)
+![Tile Editor 0.2] (https://github.com/blendman/TileEditor/blob/main/screenshots/tileeditor0.2.jpg)
 
 
 ## Download ###
