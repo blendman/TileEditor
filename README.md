@@ -28,11 +28,12 @@ There isn't any release for the moment for those platforms.
 
 
 
-
 ## Contributing
 
 * [Issue Tracker](https://github.com/blendman/Animatoon/issues) - Report bugs or request features.
 * [Developer Guide](https://github.com/blendman/Animatoon/wiki) - Learn how to compile Animatoon yourself (not finished).
+
+The default tileSet Image are from Michele "Buch" Bucelli  (https://opengameart.org/users/buch)
 
 
 ## Thanks for the help & contributers
