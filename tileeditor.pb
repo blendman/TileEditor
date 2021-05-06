@@ -2674,8 +2674,11 @@ EndProcedure
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x86)
 ; CursorPosition = 692
-; FirstLine = 87
+; FirstLine = 78
 ; Folding = EAgAAIhNACAAAAAAAACAQAAAAAAAAAAAAAAAACAAAAK9BAwDAAAAAAAABAAAA5
 ; EnableXP
+; EnableOnError
+; UseIcon = tileeditor.ico
+; Executable = _release\tileeditor0.3.exe
 ; Warnings = Display
 ; EnablePurifier
