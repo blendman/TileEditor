@@ -4,7 +4,6 @@
 
 ;{ infos
 
-;{ TODO
 ;--- TODO
 ; v 0.1 :
 ; ok - panel tileset (load image), draw tileset & select tile on canvas.
@@ -19,14 +18,13 @@
 ; ok - file : new, open, save, saveas, exit.
 ; v 0.3 :
 ; ok - window mapproperties : mapw/h, tilew/h.
-; ok - edit : copie/paste selection
+; - edit : copie/paste selection
 ; ok - edit : erase (all, selected, layer)
-; ec - preference (options) save/load
-; - windowpreference
+; - preference (options) save/load, windowpreference
 ; - edit : window change properties (x+val,y+val)
 ; v 0.4 :
 ; ok - layer combobox and buton +
-; ok - Clic on buton layer + : open Window layer
+; - Clic on buton layer + : open Window layer)
 ; - window layer (add, delete, rename, view, lock, move up/down)
 ; - menu file : export as level, export as pb example ?
 ; v 0.5 :
@@ -45,51 +43,35 @@
 ; - pap : add/delete frame, play/stop animation, oignon skinning. timeline (fond, key, cursor, add/delete keyframe, copy/paste, move keyframe)
 ; v 0.9 :
 ; v 1.0 :
-;}
+
 
 ;--- URGENT
+; - Copy/paste selected Tiles
 ; - Change Layer tiles 
 
-;{ CHANGELOG
+
 ;--- CHANGELOG
 
-; 6.5.2021 (0.3.1)
+; 4.5.2021 (0.2.0)
 ;// New
-; - CheckError(), AddLogError()
-; - Now, I check if there is an init error (initsprite, keyboard, image decoder/encoder..)
-; - options : add TilesetDefault$
-; - add a default TileSet image (Made by Buch https://opengameart.org/users/buch)
-;// Fixes
-; - when change image on tile, the layer()\tile()\image, tileID, etc aren't updated
-
-; 5.5.2021 (0.3.0)
-;// New
-; - Clic on buton layer + : open Window layer
-; - Menu : shortcut Cut, Copy, Paste, doc_new/open/save
-;// Fixes
-; - paste Tiles : tile aren't at the good position (by at the old)
-
-; 4.5.2021 (0.2.5)
-;// New
-; - Add : TheMap.sTheMap
+; wip - Add : TheMap.sTheMap
 ; - Panel Tile : add w/H
 ; - Image list : add scalew/H to resize image if needed.
-; - Add list Thelayer.Layer()
+; - Add list Thelayer.Thelayers()
 ; - Change the TileW/H with gagdets on TileSet panel
-; - Edit : copy Tiles
-; - Edit : paste Tiles
+; wip - Edit : copy Tiles
 ;// Changes
-; - UpdateTileSetCanvas use TileSet\TileW & TileH
-; - CreateTheTile use TileSet\TileW & TileH
+; - UpdateTileSetCanvas use TileSet\TileW & TileW
+; - CreateTheTile use TileSet\TileW & TileW
 ; - change gadgets layer to layer combobox & buton + (to manage layers)
 ; - Add CreateGadgets() for main window
 ; - AddCheckBoxGadget() to create easily checkbox
 ;// Fixes
 ; - Tile with tileset with alpha aren't transparents (even with usealpha)
 ; - fixe some bugs
-; - when delete/erase tiles, in some case, a tile isnt properly erased
 
-; 3.5.2021 (0.2.2)
+
+; 3.5.2021 (0.1.9)
 ;// New
 ; - tile : setpropertie with gadgets (panel tile), with selected Tiles.
 ; - Menu Selection : select ALL (Ctrl+A), deselect ALL (Ctrl+D)
@@ -160,11 +142,9 @@
 ; - menu (empty)
 
 ;}
-;}
 
 
-
-#ProgramVersion = "0.3.1"
+#ProgramVersion = "0.2.0"
 #ProgramDate      = #PB_Compiler_Date ; 04/2021
 #ProgramName      = "Tile Editor"
 Enumeration
@@ -260,17 +240,6 @@ Enumeration
   #G_TileVisible
   #G_TileId
   #G_TileType
-  
-  ; Layers
-  #G_LayerList
-  #G_LayerListCanvas
-  #G_LayerView
-  #G_LayerLock
-  #G_LayerBtnAdd
-  #G_LayerBtnDel
-  #G_LayerBtnMoveUp
-  #G_LayerBtnMoveDown
-  
   ;}
   
   ; for all Windows
@@ -340,6 +309,15 @@ Enumeration
   
 EndEnumeration
 
+;{ Init
+If InitSprite() : EndIf
+If InitKeyboard() : EndIf
+If UsePNGImageDecoder() : EndIf
+If UsePNGImageEncoder() : EndIf
+If UseJPEGImageDecoder() : EndIf
+If UseJPEGImageEncoder() : EndIf
+;}
+
 ;{ variables
 Global TileW=32, TileH=32, TileID, TileX, TileY, TileSetW, TileSetH, winW, winH
 Global screenX, screenY, screenW, ScreenH
@@ -389,15 +367,17 @@ Structure sTile
   selected.a
 EndStructure
 Structure sLayer
-  name$
-  ordre.w
-  view.a
-  lock.a
   Array Tile.sTile(0)
 EndStructure
 Global LayerId, TileID, tileID_byMouse, NBTile = -1
 Global Dim Layer.sLayer(0)
-Global Dim CopyTile.sTile(0)
+Global Dim CopyTile.sLayer(0)
+
+Structure sLayerList
+  name$
+  id.w
+EndStructure
+Global Dim TheLayers.sLayerList(0)
 Global NbLayers=-1
 
 Structure sTheMap
@@ -411,46 +391,23 @@ Global TheMap.sTheMap
 Global MapW =20, MapH =20
 
 Structure sOptions
-  ; UI
-  Grid.a
-  ; show
-  Statusbar.a
-  ; program parameters
   Lang$
-  Theme$
-  SpriteQuality.a
-  UseRighmouseToErase.a
-  ; autosave
+  Docname$
   Autosave.a
   AutosaveTime.a
-  autosaveAtExit.a
-  ConfirmExit.a
+  ConfirmAtExit.a
   AutoSaveIfQuit.a
-  TilesetImage$
-  ; statistics
-  NbNewFile.w
-  NbMinutes.i
-  ; path
   DirTileset$
-  PathOpen$
-  PathSave$
-  TilesetDefault$
+  TilesetImage$
   ; current document
-  Docname$
   Layer.a
   UseAlpha.a
   AlphaColor.i
   Zoom.w
 EndStructure
 Global Options.sOptions
-;{ options by default
-With Options
-  \Lang$ = "eng"
-  \DirTileset$ = "data\images\"
-  \PathOpen$ = "save\"
-  \PathSave$ = "save\"
-EndWith
-;}
+Options\DirTileset$ = "data\images\"
+Options\Zoom = 100
 
 Structure sBrush
   size.w
@@ -462,8 +419,17 @@ Global Dim brush.sBrush(1) ; 2 action for the brush (pixelArtPaint window) : pai
 Global Action
 ;}
 
+;{ macros
+Macro DeleteArrayElement(ar, el)
+  For a=el To ArraySize(ar())-1
+    ar(a) = ar(a+1)
+  Next 
+  ReDim ar(ArraySize(ar())-1)
+EndMacro
+;}
+
 ;{ Declaration
-Declare AddLogError(error, info$)
+
 ; utilities
 Declare.l Min(a,b)
 Declare SetMin(a, min)
@@ -475,7 +441,6 @@ Declare.s Lang(text$)
 ; Menu
 Declare CreateTheMenu()
 Declare CreateTheStatusBar()
-Declare StatusBarUpdate()
 ; gadgets
 Declare AddSpinGadget(id, x, y, w, h, min, max, tip$=#Empty$, val=0, name$=#Empty$)
 Declare AddButtonGadget(id, x, y, w, h, text$, tip$=#Empty$)
@@ -486,16 +451,11 @@ Declare TileSet_SetAlphaColor(color)
 Declare Tile_GetProperties(mode=0)
 Declare Tile_SetProperties(EventGadget)
 Declare CreateGadgets()
-; layers
-Declare Layer_Add(add=0)
-Declare Layer_GetLayerId()
-Declare Layer_UpdateList(all=-1)
+Declare TileSet_UpdateTheLayerList(add=0)
 ; Windows
 Declare WinMapProperties()
 Declare WinPixelArtPaint()
 ; File
-Declare OpenOptions()
-Declare SaveOptions()
 Declare Doc_New(window=1)
 Declare Doc_Open()
 Declare Doc_Save(saveas=0)
@@ -503,8 +463,6 @@ Declare Autosave()
 ; Select
 Declare Tile_Select(All=1, SelectionType=#Selection_AllTiles)
 ; edit
-Declare Tile_Copy()
-Declare Tile_Paste(x1,y1)
 Declare Tile_Delete(j,i,del_Element=1)
 Declare Tile_Erase(mode)
 ; screen et tiles
@@ -513,34 +471,6 @@ Declare TileSet_GetNb()
 Declare TileSet_Add()
 Declare Tile_UpdateImage(j,i)
 Declare CreateTheTile(x, y)
-;}
-
-;{ macros
-Macro CheckError(Function, endappli, error)
-  If function = 0
-    MessageRequester(Lang("Error"), error, #PB_MessageRequester_Error)
-    AddLogError(1, error+" ("+Chr(34)+function+Chr(34)+")")
-    If endappli = 1
-      End
-    EndIf
-  EndIf
-EndMacro 
-
-Macro DeleteArrayElement(ar, el)
-  For a=el To ArraySize(ar())-1
-    ar(a) = ar(a+1)
-  Next 
-  ReDim ar(ArraySize(ar())-1)
-EndMacro
-;}
-
-;{ Init
-CheckError(InitSprite(), 1, lang("Sprite system error (direct X or OpenGL error)"))
-CheckError(InitKeyboard(), 1, lang("Keyboard error"))
-CheckError(UsePNGImageDecoder(), 1, lang("PNG Image Decoder error"))
-CheckError(UsePNGImageEncoder(), 1, lang("PNG Image Encoder error"))
-CheckError(UseJPEGImageDecoder(), 1, lang("JPEG Image Decoder error"))
-CheckError(UseJPEGImageEncoder(), 1, lang("JPEG Image Encoder error"))
 ;}
 
 ; open the window
@@ -555,11 +485,7 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
               #PB_Window_SystemMenu|#PB_Window_ScreenCentered|#PB_Window_MaximizeGadget|#PB_Window_MinimizeGadget|#PB_Window_SizeGadget|#PB_Window_Maximize)
   
   
-  
-  OpenOptions()
-  If Options\Zoom <= 10
-    Options\Zoom = 100
-  EndIf
+  Zoom = 100
 	CreateTheStatusBar()
   CreateTheMenu()
   ;{ create the screen
@@ -592,7 +518,7 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
       
       mx = WindowMouseX(0) - screenX
       my = WindowMouseY(0) - screenY
-      Z.d = Options\Zoom * 0.01
+      Z.d = Zoom * 0.01
       event       = WaitWindowEvent(1)
       EventGadget = EventGadget()
       EventMenu   = EventMenu()
@@ -627,16 +553,6 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
               Tile_Select()
               ;}
               ;{ Edit
-            Case #Menu_EditCut
-               Tile_Copy()
-              Tile_Erase(1)
-            Case #Menu_EditCopy
-              Tile_Copy()
-            Case #Menu_EditPaste
-              x = Round(((mx - CanvasX)/Z)/TileW,  #PB_Round_Down) 
-              y = Round(((my - CanvasY)/z)/tileH,  #PB_Round_Down)
-              Debug Str(x)+"/"+Str(y)
-              Tile_Paste(x,y)
             Case #Menu_EditClearAll
             	Tile_Erase(0)
             Case #Menu_EditClearSelected
@@ -663,11 +579,11 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
               ;}
               ;{ View
             Case #Menu_ViewZoom50
-              Options\Zoom = 50 : StatusBarUpdate()
+              Zoom = 50 : StatusBarText(0, 0, "zoom : "+Str(zoom)+"%")
             Case #Menu_ViewZoom100
-              Options\Zoom = 100 : StatusBarUpdate()
+              Zoom = 100 : StatusBarText(0, 0, "zoom : "+Str(zoom)+"%")
             Case #Menu_ViewZoom200
-              Options\Zoom = 200 : StatusBarUpdate()
+              Zoom = 200 : StatusBarText(0, 0, "zoom : "+Str(zoom)+"%")
             Case #Menu_ViewReset
               canvasX = 0
               canvasY = 0
@@ -687,11 +603,9 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
               ;}
               ;{ Help  
             Case #Menu_HelpAbout
-              MessageRequester(Lang("About"), "Tile Editor is a free and open-source level editor, made in purebasic, by Blendman, since april 2021."+Chr(13)+
-                                              Lang("Version")+" : "+#ProgramVersion+Chr(13)+
-                                              Lang("Date")+" : "+FormatDate("%dd/%mm/%yyyy", #ProgramDate)+
-                                              "Github source and update : "+"https://github.com/blendman/TileEditor"+
-                                              Lang("Default tileset")+" by Michele 'Buch' Bucelli (https://opengameart.org/users/buch)")
+              MessageRequester(Lang("About"), "Tile Editor is a free and open-source level editor, made in purebasic, by BLendman, since april 2021."+Chr(13)+
+                                              "Version : "+#ProgramVersion+Chr(13)+
+                                              "Date : "+FormatDate("%dd/%mm/%yyyy", #ProgramDate))
               ;}
             Default
               MessageRequester(Lang("Info"), Lang("Not implemented"))
@@ -701,7 +615,7 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
           If onscreen = 0
             gad = 1
             Select EventGadget
-                ;{ Panel Tile
+                ;{ Panel Tile =
               Case #G_TileX To #G_TileType
                 Tile_SetProperties(EventGadget)
                 ;}
@@ -714,20 +628,6 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
               Case #G_TileSetTileH
                 Tileset(TilesetCurrent)\TileH = GetGadgetState(EventGadget)
                 TileSet_UpdateCanvas(TileX, TileY)
-                
-              Case #G_LayerListCanvas
-                Layer_GetLayerId()
-                
-              Case #G_LayerLock
-                Layer(layerId)\lock = GetGadgetState(EventGadget)
-                Layer_UpdateList()
-                
-              Case #G_LayerView
-                Layer(layerId)\view = GetGadgetState(EventGadget)
-                Layer_UpdateList()
-                
-              Case #G_LayerBtnAdd
-                Layer_Add(1)
                 
               Case #G_TileSetLayer
                 Options\Layer = GetGadgetState(EventGadget)
@@ -818,23 +718,20 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
                 
                 ePar = EventwParam()
                 wheelDelta.w = ((ePar>>16)&$FFFF) 
-                Options\zoom + (wheelDelta / 12)     
-                If Options\zoom > 5000
-                  Options\zoom = 5000
+                zoom + (wheelDelta / 12)     
+                If zoom > 5000
+                  zoom = 5000
                 EndIf    
-                If Options\zoom < 10
-                  Options\zoom = 10
+                If zoom < 10
+                  zoom = 10
                 EndIf 
-                StatusBarUpdate()
+                StatusBarText(0, 0, "zoom : "+Str(zoom)+"%")
               EndIf
             EndIf
           EndIf
-          
-        Case #PB_Event_CloseWindow
-          quit = 1
       EndSelect
       
-    Until event =0 Or quit = 1
+    Until event =0 Or event = #PB_Event_CloseWindow
     
     ; events for the screen
     ;{ keyboard
@@ -936,7 +833,8 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
               
           EndSelect
           
-          StatusBarUpdate()
+          i = TileSet_GetNb()
+          StatusBarText(0, 1, "NbTile : "+Str(i))
 
         EndIf
       EndIf
@@ -951,42 +849,32 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
     ; draw the tiles
     For i =0 To ArraySize(layer())
       For j =0 To ArraySize(layer(i)\Tile())
-        If Layer(i)\View
-          With Layer(i)\Tile(j)
-            If \visible And IsSprite(\sprite)
-              ZoomSprite(\sprite, \w *z, \H *z)
-              ;If \usealpha = 0
-              ;DisplaySprite(\sprite, canvasx + \x * tileW*z, canvasy+ \y * tileH*z)
-              ;Else
-              DisplayTransparentSprite(\sprite, canvasx + \x * tileW*z, canvasy+ \y * tileH*z)
-              ;EndIf
-            EndIf
-            If \selected And IsSprite(\spriteSelect)
-              ZoomSprite(\spriteSelect, \w *z, \H *z)
-              DisplayTransparentSprite(\spriteSelect, canvasx + \x * tileW*z, canvasy+ \y * tileH*z, 100)      
-            EndIf
-          EndWith
-        EndIf
+        With Layer(i)\Tile(j)
+          If \visible And IsSprite(\sprite)
+            ZoomSprite(\sprite, \w *z, \H *z)
+            ;If \usealpha = 0
+            ;DisplaySprite(\sprite, canvasx + \x * tileW*z, canvasy+ \y * tileH*z)
+            ;Else
+            DisplayTransparentSprite(\sprite, canvasx + \x * tileW*z, canvasy+ \y * tileH*z)
+            ;EndIf
+          EndIf
+          If \selected And IsSprite(\spriteSelect)
+            ZoomSprite(\spriteSelect, \w *z, \H *z)
+            DisplayTransparentSprite(\spriteSelect, canvasx + \x * tileW*z, canvasy+ \y * tileH*z, 100)      
+          EndIf
+        EndWith
       Next 
     Next 
     
     FlipBuffers()
     ;}
     
-  Until quit = 1
-  
-  SaveOptions()
-  
-  If Options\AutoSaveIfQuit
-    Autosave()
-  EndIf
-  
+  Until event = #PB_Event_CloseWindow
   
 EndIf
 
 
 ;{ Procedures
-
 ;{ Math
 Procedure.l min(a,b)
   If a > b
@@ -1023,24 +911,6 @@ EndProcedure
 ;}
 
 ;{ init
-Procedure AddLogError(error, info$)
-  LogError$ +info$ + Chr(13)
-  Date$ = FormatDate("%yyyy%mm%dd", Date()) 
-  Thedate$= FormatDate("%yyyy/%mm/%dd(%hh:%ii:%ss)", Date())
-  LogFile$ =  "save\logError.txt" ; "save\logError"+Date$+".txt"
-  If OpenFile(0,    LogFile$, #PB_File_Append) 
-    ; read and save the previous infos?
-    WriteStringN(0, Thedate$)
-    WriteString(0,  LogError$)
-    CloseFile(0)
-  Else
-    If CreateFile(0,  LogFile$)
-      WriteStringN(0, Thedate$ )
-      WriteString(0,  LogError$)
-      CloseFile(0)
-    EndIf
-  EndIf
-EndProcedure
 Procedure.s Lang(text$)
   ; ' will be changed with langages
   ProcedureReturn text$
@@ -1060,29 +930,20 @@ Procedure CreateTheStatusBar()
     StatusBarText(0, 1, "NbTile : "+Str(1+NBTile))
   EndIf
 EndProcedure
-Procedure StatusBarUpdate()
-  StatusBarText(0, 0, "Zoom : "+Str(Options\zoom)+"%")
-  i = TileSet_GetNb()
-  StatusBarText(0, 1, "NbTile : "+Str(i))
-EndProcedure
 Procedure CreateTheMenu()
   If CreateMenu(0, WindowID(0))
     MenuTitle(Lang("File"))
-    MenuItem(#Menu_FileNew, Lang("New")+Chr(9)+"Ctrl+N")
-    MenuItem(#Menu_FileOpen, Lang("Open")+Chr(9)+"Ctrl+O")
+    MenuItem(#Menu_FileNew, Lang("New"))
+    MenuItem(#Menu_FileOpen, Lang("Open"))
     MenuItem(#Menu_FileMerge, Lang("Merge"))
-    MenuItem(#Menu_FileSave, Lang("Save")+Chr(9)+"Ctrl+S")
+    MenuItem(#Menu_FileSave, Lang("Save"))
     MenuItem(#Menu_FileSaveAs, Lang("Save as"))
     ; MenuItem(#Menu_FileExport, Lang("Export in purebasic"))
     MenuBar()
-    MenuItem(#Menu_FileExit, Lang("Exit")+Chr(9)+"Esc")
+    MenuItem(#Menu_FileExit, Lang("Exit"))
     MenuTitle(Lang("Edit"))
-    MenuItem(#Menu_EditCut, Lang("Cut")+Chr(9)+"Ctrl+X")
-    MenuItem(#Menu_EditCopy, Lang("Copy")+Chr(9)+"Ctrl+C")
-    MenuItem(#Menu_EditPaste, Lang("Paste")+Chr(9)+"Ctrl+V")
-    MenuBar()
     MenuItem(#Menu_EditClearAll, Lang("Delete all"))
-    MenuItem(#Menu_EditClearSelected, Lang("Delete selected tiles")+Chr(9)+"Ctrl+W")
+    MenuItem(#Menu_EditClearSelected, Lang("Delete selected tiles"))
     MenuItem(#Menu_EditClearLayer, Lang("Delete the tiles by layer"))
     MenuItem(#Menu_EditFillWithTile, Lang("Fill the map with current tile"))
     MenuTitle(Lang("View"))
@@ -1109,13 +970,6 @@ Procedure CreateTheMenu()
   AddKeyboardShortcut(0, #PB_Shortcut_E, #Menu_ToolDeleteTile)
   AddKeyboardShortcut(0, #PB_Shortcut_C, #Menu_ToolChangeTile)
   AddKeyboardShortcut(0, #PB_Shortcut_S, #Menu_ToolSelectTile)
-  AddKeyboardShortcut(0, #PB_Shortcut_Control|#PB_Shortcut_N, #Menu_FileNew)
-  AddKeyboardShortcut(0, #PB_Shortcut_Control|#PB_Shortcut_O, #Menu_FileOpen)
-  AddKeyboardShortcut(0, #PB_Shortcut_Control|#PB_Shortcut_S, #Menu_FileSave)
-  AddKeyboardShortcut(0, #PB_Shortcut_Escape, #Menu_FileExit)
-  AddKeyboardShortcut(0, #PB_Shortcut_Control|#PB_Shortcut_C, #Menu_EditCopy)
-  AddKeyboardShortcut(0, #PB_Shortcut_Control|#PB_Shortcut_X, #Menu_EditCut)
-  AddKeyboardShortcut(0, #PB_Shortcut_Control|#PB_Shortcut_V, #Menu_EditPaste)
   AddKeyboardShortcut(0, #PB_Shortcut_Control|#PB_Shortcut_A, #Menu_SelectAll)
   AddKeyboardShortcut(0, #PB_Shortcut_Control|#PB_Shortcut_D, #Menu_DeSelectAll)
   AddKeyboardShortcut(0, #PB_Shortcut_Control|#PB_Shortcut_W, #Menu_EditClearSelected)
@@ -1158,7 +1012,7 @@ Procedure AddCheckBoxGadget(id, x, y, w, h, text$, tip$=#Empty$)
   GadgetToolTip(id,tip$)
 EndProcedure
 
-; Tileset, tiles
+; Tileset
 Procedure TileSet_AddImageToList(window=1)
   ; Window to manage image of tileset (add, remove...)
   ok = 1
@@ -1381,211 +1235,29 @@ Procedure Tile_GetProperties(mode=0)
   EndIf
   
 EndProcedure
-; Layers
-Procedure Layers_OpenWindow()
-  ;If Window = 1
-    w1=800
-    h1=500
-    If OpenWindow(#WinOther,0,0,w1,h1,Lang("Layers"),#PB_Window_SystemMenu|#PB_Window_ScreenCentered|#PB_Window_SizeGadget,WindowID(#WinMain))
-      
-      x = 5
-      y=5
-      w=50
-      h=25
-      w2 = w1-20
-      w3 = w2 - (w+5)*2
-      
-      
-      AddButtonGadget(#G_winAddImgtolist_Load, x,y,h,h,lang("+"), lang("Add a new layer")) : x+h+5
-      AddButtonGadget(#G_winAddImgtolist_Remove, x,y,h,h,lang("-"), lang("Delete the selected layer and and its tiles")) : x+h+5;: y+h+5
-      AddButtonGadget(#G_winAddImgtolist_ImgScaleW, x,y,h,h,lang("Up"), lang("Move the layer up")) : x+h+5;: y+h+5
-      AddButtonGadget(#G_winAddImgtolist_ImgScaleH, x,y,h,h,lang("Down"), lang("Move the layer down")) : x+h+5;: y+h+5
-      
-      
-      Repeat
-        event=WaitWindowEvent(1)
-        EventGadget = EventGadget()
-        
-        Select event
-          Case #PB_Event_Gadget
-            Select EventGadget
-            EndSelect
-            
-          Case #PB_Event_CloseWindow
-            If GetActiveWindow() = #WinOther
-              quit=1
-            EndIf
-            
-        EndSelect
-        
-      Until quit>=1
-      
-      CloseWindow(#WinOther)
-      
-    EndIf
-  ;EndIf
-EndProcedure
-Procedure Layer_SetGadgetState()
-  SetGadgetState(#G_LayerLock, Layer(layerID)\lock)
-  SetGadgetState(#G_LayerView, Layer(layerID)\view)
-EndProcedure
-Procedure Layer_UpdateList(all=-1)
-  
-  ; update the layer UI
-  h = 26 ; ImageHeight(#Img_LayerCenterSel) 
-  
-  ; verify the height needed to draw all layers
-  hl = (ArraySize(Layer())+1) *(h+1)
-  If hl > 200
-    ResizeGadget(#G_LayerListCanvas, #PB_Ignore, #PB_Ignore, #PB_Ignore, hl)
-    SetGadgetAttribute(#G_LayerList, #PB_ScrollArea_InnerHeight , hl+10)
-  ElseIf hl < 200
-    If GadgetHeight(#G_LayerListCanvas) <> 200
-      ResizeGadget(#G_LayerListCanvas, #PB_Ignore, #PB_Ignore, #PB_Ignore, 200)
-      SetGadgetAttribute(#G_LayerList, #PB_ScrollArea_InnerHeight , 200)
-    EndIf
-  EndIf
-  
-  If StartDrawing(CanvasOutput(#G_LayerListCanvas))
-    
-    ; the canvas grey background
-    Box(0, 0, OutputWidth(), OutputHeight(), RGB(160, 160, 160))
-    
-    ; for the checker image (for layer image preview)
-    ;s = 19
-    ;checker = CopyImage(#Img_Checker,#PB_Any)
-    ;ResizeImage(checker, s, s) 
-    
-    ; temporaire
-    all = -1
-    
-    ; draw the image For each layer    
-    If all <> -1
-      ; just the layerID
-      i = layerId
-      ;Box(0, 1+layer(i)\ordre * (h+1), OutputWidth(), h, RGB(100, 100, 100))
-      DrawingMode(#PB_2DDrawing_Transparent)
-      DrawText(40, 2, Layer(i)\name$, RGB(255, 255, 255))
-      
-    Else
-      
-      ; draw all layer
-      For i = ArraySize(Layer()) To 0 Step -1
-        
-        pos = ArraySize(Layer()) - Layer(i)\ordre
-        
-        xx1 = 0
-        yy1 = 1+pos *(h+1)
-        ; a box for BG layer (not selected)
-        Box(0, 1+pos *(h+1), OutputWidth(), h, RGB(120, 120, 120))
-        
-        ; if layer is selected
-        If i = layerid
-          Box(0, 1+pos *(h+1), OutputWidth(), h, RGB(100, 100, 100))
-        EndIf
-        
-;         If i = layerId
-;           Box(0,0,OutputWidth(),h,  xx1, yy1)
-;           ;DrawImage(ImageID(#Img_LayerCenterSel), xx1, yy1)
-;         Else
-;           ;DrawImage(ImageID(#Img_LayerCenter), xx1, yy1)
-;         EndIf
-        
-        
-        ; the image for layer\view
-        a = 11
-        If Layer(i)\view
-           Box(5, 8+pos*(h+1), a, a, RGB(220, 220, 220))
-          ; DrawAlphaImage(ImageID(#ico_LayerEye),5,8+pos*(h+1))
-        EndIf
-        
-        ; the image of the layer 
-;         DrawImage(ImageID(checker), 23,3+yy1)
-        
-        ; the image for layer\lock
-        If Layer(i)\lock
-           Box(104, 4+pos*(h+1), a, a, RGB(250, 120, 0))
-          ;DrawAlphaImage(ImageID(#ico_LayerLocked),104,4+pos*(h+1))
-        EndIf
-        
-         DrawingMode(#PB_2DDrawing_Transparent)
-         DrawText(44+d*22, 4+pos*(h+1), Layer(i)\name$, RGB(255, 255, 255))
-         
-      Next
-    EndIf
-    
-    StopDrawing()
-  EndIf
-  
-EndProcedure
-Procedure Layer_Add(add=0)
+
+; main window
+Procedure TileSet_UpdateTheLayerList(add=0)
   
   If add=0
     ; create at astart, we need at least 1 layer :)
-    Layer(0)\name$ = "Base"
-    Layer(0)\view = 1
+    TheLayers(0)\name$ = "0 - Base"
     LayerId = 0
     
   Else
     ; add a new layer to the list
-    i = ArraySize(Layer())+1
-    ReDim Layer.sLayer(i)
-   ; ReDim TheLayers.sLayerList(i)
-    With Layer(i)
-      \name$ = "Layer"+Str(i)
-      \view = 1
-      \ordre = i
-    EndWith
-    LayerId = i
+    ; open a window to manager the layers
+    
   EndIf
-  Layer_UpdateList()
-EndProcedure
-Procedure Layer_GetLayerId()
   
-  h = 26+1
-  lx = GetGadgetAttribute(#G_LayerListCanvas, #PB_Canvas_MouseX)
-  ly = GetGadgetAttribute(#G_LayerListCanvas, #PB_Canvas_MouseY)
-
-  Select EventType()
-      
-    Case #PB_EventType_LeftDoubleClick
-      If Lx > 45 And Lx <= 80
-        name$ = InputRequester("Name", "Name of the layer : ", "")
-        If name$ <> ""
-          Layer(layerId)\name$ = name$
-          Layer_UpdateList();-1)
-        EndIf
-      ElseIf Lx > 80 
-        ; layer properties
-        ;WindowLayerProp()
-      EndIf
-      
-    Case #PB_EventType_LeftButtonDown
-      pos = ly/h
-      i = ArraySize(Layer())- pos
-      Debug i
-      If i <0
-        i = 0
-      ElseIf i> ArraySize(Layer())
-         i = ArraySize(Layer())
-      EndIf
-      
-      If Lx < 20
-        ; view
-        Layer(i)\View = 1 - Layer(i)\View
-      Else
-        layerId = i
-        ; testlayer(LayerId)
-      EndIf
-    
-      ; Debug pos
-      Layer_SetGadgetState()
-      Layer_UpdateList(-1)
-    
-      
-  EndSelect
+  ; Update the layer list gadget (tileset panel)
+  ClearGadgetItems(#G_TileSetLayer)
+  For i=0 To ArraySize(TheLayers())
+    AddGadgetItem(#G_TileSetLayer, i,TheLayers(i)\name$ )
+  Next
+  SetGadgetState(#G_TileSetLayer, LayerId)
+  
 EndProcedure
-; main window
 Procedure CreateGadgets()
    ;{ create gadgets
   ; panel tile set
@@ -1677,10 +1349,11 @@ Procedure CreateGadgets()
     EndIf
     y+h1+5
     
-    ;ComboBoxGadget(#G_TileSetLayer, x, y, w3, h2) :  x+w3+5
-    ;GadgetToolTip(#G_TileSetLayer, Lang("Select the current Layer to add a tile on"))
+    ComboBoxGadget(#G_TileSetLayer, x, y, w3, h2) :  x+w3+5
+    GadgetToolTip(#G_TileSetLayer, Lang("Select the current Layer to add a tile on"))
+    TileSet_UpdateTheLayerList()
     
-    ;AddButtonGadget(#G_TileSetLayerAdd, x, y, h2, h2, Lang("+"), Lang("Set the layer (depth) For the current tile")) :  y+h2+5
+    AddButtonGadget(#G_TileSetLayerAdd, x, y, h2, h2, Lang("+"), Lang("Set the layer (depth) For the current tile")) :  y+h2+5
     x = 5
     AddSpinGadget(#G_TileSetTileW, x, y, w2, h2, 1, 10000, lang("Set the width Tile (for the image)"), TileW) :  x+w2+5
     AddSpinGadget(#G_TileSetTileH, x, y, w2, h2, 1, 10000, lang("Set the height Tile (for the image)"), tileH):  x+w2+5
@@ -1721,38 +1394,15 @@ Procedure CreateGadgets()
       CheckBoxGadget(#G_TileLock, x, y, w3, h2, Lang("Lock"), 1) : x+w3+5
       CloseGadgetList()
     EndIf
-    
-    ;}
-    
-    ;{ layers
-    AddGadgetItem(#G_panelTileSet, -1, "Layers")
-    x = 5
-    y = 5
-    
-    AddCheckBoxGadget(#G_LayerView, x,y,w2,h2,lang("View"), Lang("Set visible all tiles on the layer")) : x+w2+5
-    AddCheckBoxGadget(#G_LayerLock, x,y,w2,h2,lang("Lock"), Lang("Lock all tiles on the layer)")) : y+h2+5
-    x=5
-    wl = 160
-    If ScrollAreaGadget(#G_LayerList, x, y, wl, 200, wl-22, 200, #PB_ScrollArea_Single)
-      If CanvasGadget(#G_LayerListCanvas, 0, 0, wl, 200)
-        Layer_Add()
-      EndIf
-      CloseGadgetList()
-    EndIf
-    y+205
-    AddButtonGadget(#G_LayerBtnAdd, x,y,h2,h2,lang("+"), lang("Add a new layer")) : x+h2+5
-    AddButtonGadget(#G_LayerBtnDel, x,y,h2,h2,lang("-"), lang("Delete the selected layer and and its tiles")) : x+h2+5;: y+h+5
-    AddButtonGadget(#G_LayerBtnMoveUp, x,y,h2,h2,lang("Up"), lang("Move the layer up")) : x+h2+5                      ;: y+h+5
-    AddButtonGadget(#G_LayerBtnMoveDown, x,y,h2,h2,lang("Down"), lang("Move the layer down")) : x+h2+5                  ;: y+h+5
-
-    ;}
     CloseGadgetList()
+    ;}
+    
   EndIf
   ;}
 EndProcedure
 ;}
 
-;{ Screen, Tiles, TileSet, Layer
+;{ Screen & Tiles
 Procedure FPS()
   Static ze_second, ze_fps
   ss = Second(Date())
@@ -1764,7 +1414,7 @@ Procedure FPS()
     ze_fps=0
   EndIf
 EndProcedure
-; TileSet
+; tile & tileset
 Procedure TileSet_GetNb()
   If ArraySize(layer(layerID)\Tile()) = 0 And NbTile = -1
     n = 0
@@ -1810,7 +1460,6 @@ Procedure TileSet_Add()
     EndWith
   EndIf
 EndProcedure
-; Tile
 Procedure Tile_UpdateImage(j,i)
   sp = layer(j)\Tile(i)\sprite
   If IsSprite(sp)
@@ -1849,17 +1498,17 @@ Procedure CreateTheTile(x, y)
   Layer(layerID)\Tile(TileId)\sprite = 0
   Layer(layerID)\Tile(TileId)\spriteSelect = 0
   
+  
+  
   tw = tileW ; TileSet(TilesetCurrent)\tileW
   th = tileH ; TileSet(TilesetCurrent)\tileH
   
   sp = Layer(LayerID)\Tile(TileID)\sprite
   If sp <=0
     spSelect = CreateSprite(#PB_Any, 4, 4)
+    sp = CreateSprite(#PB_Any, tW, tH,#PB_Sprite_AlphaBlending )
     If TileSet(TilesetCurrent)\usealpha = 1
-      sp = CreateSprite(#PB_Any, tW, tH)
       TransparentSpriteColor(sp, Tileset(TilesetCurrent)\alphacolor)
-    Else
-      sp = CreateSprite(#PB_Any, tW, tH, #PB_Sprite_AlphaBlending)
     EndIf
     
     Layer(LayerID)\Tile(TileID)\sprite = sp  
@@ -1890,107 +1539,9 @@ Procedure CreateTheTile(x, y)
   NBTile = TileID
 
 EndProcedure
-; Layers
 ;}
 
-;{ Menu (file, edit..) (& tile edition)
-; options
-Procedure WriteDefaultOption()
-  WritePreferenceString("Lang",  Options\Lang$)
-  PreferenceGroup("General")
-  With Options
-    WritePreferenceString("Theme",  \Theme$)
-    ; Paths & directories
-    WritePreferenceString("TilesetDefault", RemoveString(\TilesetDefault$, GetCurrentDirectory()))
-    WritePreferenceString("DirTileset",  RemoveString(\DirTileset$, GetCurrentDirectory()))
-    If \PathOpen$ = ""
-      \PathOpen$ = "save\"
-    EndIf
-    WritePreferenceString("PathOpen",  RemoveString(\PathOpen$, GetCurrentDirectory()))
-    If \PathSave$ = ""
-      \PathSave$ = "save\"
-    EndIf
-    WritePreferenceString("PathSave", RemoveString(\PathSave$, GetCurrentDirectory()))
-    ; UI
-    WritePreferenceInteger("Grid",          \Grid)
-    WritePreferenceInteger("Statusbar",     \Statusbar)
-    WritePreferenceInteger("UseRighmouseToErase",   \UseRighmouseToErase)
-    WritePreferenceInteger("Filtering",     \SpriteQuality)
-    ; exit
-    WritePreferenceInteger("ConfirmExit",   \ConfirmExit)
-    ; autosave
-    WritePreferenceInteger("autosave",      \Autosave)
-    WritePreferenceInteger("autosaveTime",  \AutosaveTime)
-    WritePreferenceInteger("autosaveAtExit",  \autosaveAtExit)
-    ; Stats
-    WritePreferenceInteger("NbNewFile",     \NbNewFile)
-    WritePreferenceInteger("NbMinutes",     \NbMinutes)
-  EndWith
-EndProcedure
-Procedure CreateOptionsFile()
-  If CreatePreferences("Pref.ini")
-    WriteDefaultOption()
-    ClosePreferences()
-  EndIf
-EndProcedure
-Procedure OpenOptions()
-  If OpenPreferences("Pref.ini")
-    If ExaminePreferenceGroups()
-      While NextPreferenceGroup()
-        pgn$ = PreferenceGroupName()
-        If pgn$ = "General"
-          With Options
-            ; UI & program
-            \Theme$         = ReadPreferenceString("Theme","data\Themes\Animatoon")
-            \SpriteQuality  = ReadPreferenceInteger("Filtering",  1)
-            \UseRighmouseToErase    = ReadPreferenceInteger("UseRighmouseToErase",   0)
-            ; show
-            \Statusbar      = ReadPreferenceInteger("Statusbar",  1)
-            \Grid           = ReadPreferenceInteger("Grid",       1)
-;             \GridW          = ReadPreferenceInteger("GridW",      32)
-;             \GridH          = ReadPreferenceInteger("GridH",      32)
-;             \GridColor      = ReadPreferenceInteger("GridColor",  0)
-            ; Options precedent file
-            \Zoom           = ReadPreferenceInteger("Zoom",       100)
-            ; exit
-            \ConfirmExit    = ReadPreferenceInteger("ConfirmExit",   1)
-            ; autosave
-            \autosaveAtExit = ReadPreferenceInteger("autosaveAtExit",   0)
-            \autosave       = ReadPreferenceInteger("autosave",   1)
-            \AutosaveTime   = ReadPreferenceInteger("autosaveTime",   10)
-            If \AutosaveTime <= 0
-              \AutosaveTime = 1
-            EndIf
-            ; Paths
-            \TilesetDefault$ = ReadPreferenceString("TilesetDefault$", "data\images\default.png")
-            \DirTileset$ = ReadPreferenceString("DirTileset", "data\images\")
-            \PathOpen$  = ReadPreferenceString("PathOpen", GetCurrentDirectory() +"save\")
-            \PathSave$  = ReadPreferenceString("PathSave", GetCurrentDirectory() + "save\")
-            ; statistics
-            \NbNewFile       = ReadPreferenceInteger("NbNewFile", 1)
-            \NbMinutes       = ReadPreferenceInteger("NbMinutes", 0)
-          EndWith
-        EndIf
-      Wend
-    EndIf
-    ClosePreferences()
-  Else
-    CreateOptionsFile()
-    OpenOptions()
-    SaveOptions()
-  EndIf
-EndProcedure
-Procedure SaveOptions()
-  If OpenPreferences("Pref.ini")
-    WriteDefaultOption()
-    ClosePreferences()
-  Else
-    If CreatePreferences("Pref.ini")
-      WriteDefaultOption() 
-      ClosePreferences()  
-    EndIf
-  EndIf
-EndProcedure
+;{ Menu (& tile edit)
 ; File
 Procedure Doc_New(window=1)
   ; open a window with some parameters
@@ -2018,7 +1569,7 @@ Procedure Doc_New(window=1)
     ;     FreeArray(Tileset())
     ;     FreeArray(TheImage())
     Global Dim Layer.sLayer(0)
-    Global Dim CopyTile.sTile(0)
+    Global Dim CopyTile.sLayer(0)
     ReDim Tileset.sTileset(0)
     ReDim TheImage.sImageList(0)
   EndIf
@@ -2128,12 +1679,7 @@ Procedure Doc_Save(saveas=0)
     name$ = SaveFileRequester(Lang("Save the document"), #Empty$, Filter$, 0)
   EndIf
   If name$<>#Empty$
-    ext$ = GetExtensionPart(name$)
-    If ext$ <>"txt"
-      name$ = RemoveString(name$, ext$)+".txt"
-    EndIf
-    
-    If OpenFile(0, name$)
+    If OpenFile(0, "Test.txt")
       d$ = ","
       ; add information
       WriteStringN(0, "info,"+#ProgramVersion+d$)
@@ -2177,69 +1723,6 @@ EndProcedure
 Procedure Autosave()
 EndProcedure
 ; Edit
-Procedure Tile_Copy()
-	Shared nbcopytile
-	
-	;If IsArray(copytile())
-		FreeArray(copytile())
-	;EndIf
-	Global Dim copytile.sTile(0)
-	
-	nbcopytile = -1
-	j= LayerID
-	For i=0 To ArraySize(Layer(j)\Tile())
-		With Layer(j)\Tile(i)
-			If \selected
-				nbcopytile + 1
-				u = nbcopytile
-				ReDim copytile.sTile(u)
-				copytile(u) = Layer(j)\Tile(i)
-				\selected=0
-			EndIf
-		EndWith
-	Next
-
-EndProcedure
-Procedure Tile_Paste(x1,y1)
-	Shared nbcopytile
-	
-	j = LayerID
-	OldTileX = TileX
-	OldTileY = TileY
-	; get the difference of position
-	x2 = x1 - copytile(0)\x
-	y2 = y1 - copytile(0)\y
-	
-	For i=0 To ArraySize(copytile())
-		; NbTile +1
-		;u = NbTile+1
-		; ReDim Layer(j)\Tile(u)
-		x = copytile(i)\x +x2
-		y = copytile(i)\y +y2
-		; set the good TileX/TileY for the image on new tile
-		TileX = copytile(i)\TileX
-		TileY = copytile(i)\TileY
-		TileID =  ArraySize(Layer(j)\Tile())+1
-		; Debug "tilecopied : "+Str(x)+"/"+Str(y)
-		CreateTheTile(x, y)
-		; copy the sprite
-		u = ArraySize(Layer(j)\Tile())
-		sp1 = Layer(j)\Tile(u)\sprite
-		sp2 = Layer(j)\Tile(u)\spriteSelect
-		; copy the tile properties from copytile()
-		Layer(j)\Tile(u) = copytile(i)
-		; then set the sprite again on the copied tiles
-		Layer(j)\Tile(u)\sprite = sp1
-		Layer(j)\Tile(u)\spriteSelect = sp2
-		Layer(j)\Tile(u)\selected = 0
-		Layer(j)\Tile(u)\x = x
-		Layer(j)\Tile(u)\y = y
-	Next
-	; then set the TileX/TileY with old value.
-	TileX = OldTileX
-	TileY = OldTileY
-	StatusBarUpdate()
-EndProcedure
 Procedure Tile_Delete(j,i, del_Element=1)
 	With layer(j)\tile(i)
 		FreeSprite2(\sprite)
@@ -2294,7 +1777,8 @@ Procedure Tile_Erase(mode)
       FreeSprite2(Layer(j)\Tile(0)\sprite)
       FreeSprite2(Layer(j)\Tile(0)\spriteSelect)
   EndSelect
-  StatusBarUpdate()
+  i = TileSet_GetNb()
+  StatusBarText(0, 1, "NbTile : "+Str(i))
 EndProcedure
 ; Select
 Procedure Tile_Select(All=1, SelectionType=#Selection_AllTiles)
@@ -2673,9 +2157,9 @@ EndProcedure
 
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x86)
-; CursorPosition = 692
-; FirstLine = 87
-; Folding = EAgAAIhNACAAAAAAAACAQAAAAAAAAAAAAAAAACAAAAK9BAwDAAAAAAAABAAAA5
+; CursorPosition = 1540
+; FirstLine = 172
+; Folding = AA5XAOCBAAAAAAAHABBAEAAAAAAAAAAAQyAQ-CAeAAw8-BAEAAAAg
 ; EnableXP
 ; Warnings = Display
 ; EnablePurifier
