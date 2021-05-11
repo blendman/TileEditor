@@ -20,7 +20,6 @@ Procedure WriteDefaultOption()
     WritePreferenceString("PathSave", RemoveString(\PathSave$, GetCurrentDirectory()))
     
     ; UI
-    WritePreferenceInteger("ShowOrigin",          \ShowOrigin)
     WritePreferenceInteger("Grid",          \Grid)
     WritePreferenceInteger("GridW",         \GridW)
     WritePreferenceInteger("GridH",         \GridH)
@@ -65,7 +64,6 @@ Procedure OpenOptions()
             \Snap           = ReadPreferenceInteger("Snap",       1)
             \snapW          = ReadPreferenceInteger("snapW",      32)
             \snapH          = ReadPreferenceInteger("snapH",      32)
-            \ShowOrigin     = ReadPreferenceInteger("ShowOrigin",       0)
             \Grid           = ReadPreferenceInteger("Grid",       1)
             \GridW          = ReadPreferenceInteger("GridW",      32)
             \GridH          = ReadPreferenceInteger("GridH",      32)
@@ -164,12 +162,9 @@ Procedure Doc_Open()
       Doc_New(0)
       
       ; free the image to open the new image
-      FreeArray(Tileset())
       FreeArray(TheImage())
       Global Dim TheImage.sImageList(0)
-      Global Dim Tileset.sTileset(0)
       nbImage = -1
-      nbTileSet = -1
       TilesetCurrent = 0
       
       While Eof(0) =0
@@ -180,11 +175,10 @@ Procedure Doc_Open()
           Case "info"
             u=2
             Version$ = StringField(line$, u, d$) : u+1
-            Version.d = ValD(StringField(line$, u, d$)) : u+1
-            ;Debug version
+            Version.d = Val(StringField(line$, u, d$)) : u+1
+           
             
           Case "image"
-            ;{ images
             nbImage+1
             i=nbImage
             ReDim TheImage.sImageList(i)
@@ -193,20 +187,13 @@ Procedure Doc_Open()
               \name$ = StringField(line$, u, d$) : u+1
               ; \id = Val(StringField(line$, 3, d$))
               \scaleW = Val(StringField(line$, u, d$)) : u+1
-              If \scaleW <=0
-                \scaleW = 1
-              EndIf
               \scaleH = Val(StringField(line$, u, d$)) : u+1
-              If \scaleH <=0
-                \scaleH = 1
-              EndIf             
               \filename$ = StringField(line$, u, d$) : u+1
             EndWith
             If TheImage(i)\filename$ = #Empty$
               TheImage(i)\filename$ = GetCurrentDirectory()+ Options\DirTileset$ +TheImage(i)\name$ 
             EndIf
             ; Debug "image pour theimage: "+TheImage(i)\filename$ 
-            ;}
             
           Case "map"
             ;{ map
@@ -274,12 +261,8 @@ Procedure Doc_Open()
             EndIf
             
             ; add a tile to the layer
-            k=1
-            If Version < 0.42
-              k = 32
-            EndIf
-            x = Val(StringField(line$, u, d$))*k : u+1
-            y = Val(StringField(line$, u, d$))*k : u+1
+            x = Val(StringField(line$, u, d$)) : u+1
+            y = Val(StringField(line$, u, d$)) : u+1
             TileX = Val(StringField(line$, u, d$)) : u+1
             TileY = Val(StringField(line$, u, d$)) : u+1
             ; the image for tile
@@ -409,7 +392,7 @@ EndProcedure
 
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x86)
-; CursorPosition = 67
-; FirstLine = 3
-; Folding = Cfw4-+D-8Hu
+; CursorPosition = 231
+; FirstLine = 51
+; Folding = Cew-4f5vf5+
 ; EnableXP

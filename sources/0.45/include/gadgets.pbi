@@ -12,9 +12,7 @@ Procedure AddButtonGadget(id, x, y, w, h, text$, tip$=#Empty$, Image=-1,toggle=-
   Else
     If ButtonGadget(id,x,y,w,h,text$) : EndIf 
   EndIf
-  If tip$<>#Empty$ And id>0
-    GadgetToolTip(id,tip$)
-  EndIf
+  GadgetToolTip(id,tip$)
 EndProcedure
 Procedure AddSpinGadget(id, x, y, w, h, min, max, tip$=#Empty$, val=0, name$=#Empty$)
   If name$<>#Empty$
@@ -25,12 +23,9 @@ Procedure AddSpinGadget(id, x, y, w, h, min, max, tip$=#Empty$, val=0, name$=#Em
       SetGadgetColor(gad, #PB_Gadget_BackColor, RGB(c, c, c)) 
     EndIf
   EndIf
-  If SpinGadget(id, x, y, w, h, min, max,  #PB_Spin_Numeric )
-    If tip$<>#Empty$
-      GadgetToolTip(id, tip$)
-    EndIf
-    SetGadgetText(id, Str(val))
-  EndIf
+  SpinGadget(id, x, y, w, h, min, max,  #PB_Spin_Numeric )
+  GadgetToolTip(id, tip$)
+  SetGadgetText(id, Str(val))
 EndProcedure
 Procedure AddStringGadget(id,x,y,w,h,tip$,text$,name$=#Empty$)
   If name$<>#Empty$
@@ -42,34 +37,15 @@ Procedure AddStringGadget(id,x,y,w,h,tip$,text$,name$=#Empty$)
     EndIf
   EndIf
   If StringGadget(id,x,y,w,h,text$)
-    If tip$<>#Empty$ 
-      GadgetToolTip(id,tip$)
-    EndIf
+    GadgetToolTip(id,tip$)
   EndIf
 EndProcedure
 Procedure AddCheckBoxGadget(id, x, y, w, h, text$, tip$=#Empty$, state=0)
-  If CheckBoxGadget(id, x, y, w, h, text$)
-    SetGadgetState(id, state)
-    If tip$<>#Empty$
-      GadgetToolTip(id,tip$)
-    EndIf
-  EndIf
+  CheckBoxGadget(id, x, y, w, h, text$)
+  SetGadgetState(id, state)
+  GadgetToolTip(id,tip$)
 EndProcedure
-Procedure AddTrackBarGadget(id,x,y,w,h,min,max,tip$=#Empty$,val=0,name$=#Empty$)
- If name$<>#Empty$
-    gad = TextGadget(#PB_Any, x, y, 50, h, name$+" ", #PB_Text_Right)
-    If gad
-      x+52 ; Len(name$)*12
-      w1=50
-    EndIf
-  EndIf
-  If TrackBarGadget(id, x, y, w-w1, h, min, max)
-   If tip$<>#Empty$
-     GadgetToolTip(id, tip$)
-   EndIf
-   SetGadgetText(id, Str(val))
- EndIf
-EndProcedure
+
 
 ; main window
 Macro AddBar()
@@ -87,7 +63,6 @@ Procedure CreateGadgets()
   AddButtonGadget(#G_ToolB_Pen,x,y,b,b,#Empty$, Lang("Add tiles")+Chr(9)+"P",#ico_IE_Pen,1) : x+b+2
   SetGadgetState(#G_ToolB_Pen, 1)
   AddButtonGadget(#G_ToolB_Brush,x,y,b,b,#Empty$, Lang("Paint tiles (even over existing tiles)")+Chr(9)+"B",#ico_IE_Brush,1) : x+b+2
-  AddButtonGadget(#G_ToolB_Fill,x,y,b,b,#Empty$, Lang("Fill")+Chr(9),#ico_IE_Fill,1) : x+b+2
   AddButtonGadget(#G_ToolB_Eraser,x,y,b,b,#Empty$, Lang("Delete the tiles")+Chr(9)+"E",#ico_IE_Eraser,1) : x+b+2
   AddButtonGadget(#G_ToolB_Select,x,y,b,b,#Empty$, Lang("Select the tiles (multi : Shift+leftbuton mouse over the tiles)")+Chr(9)+"M",#ico_IE_Select,1) : x+b+2
   AddButtonGadget(#G_ToolB_Move,x,y,b,b,#Empty$, Lang("Move the tiles")+Chr(9)+"V",#ico_IE_Move,1) : x+b+2
@@ -99,6 +74,7 @@ Procedure CreateGadgets()
   y+5
   ;}
   
+  
   ; define some variables
   x = a
   y = screenY
@@ -109,7 +85,7 @@ Procedure CreateGadgets()
   h2 = 25
   w2 = 70
   w3 = 120
-  ; Add panel left (tileset and tile properties)
+  ; Add panel (tilset and tile properties)
   If PanelGadget(#G_panelTileSet, x, y, w, h)
     
     ;{ TileSet
@@ -244,10 +220,9 @@ Procedure CreateGadgets()
     CloseGadgetList()
   EndIf
   
-  ; panel right (layer)
   x = screenX+a*2+ScreenW
   y = screenY 
-  w = Options\PanelLayerW ; WindowWidth(#WinMain)-(screenX+10-screenW)
+  w =  Options\PanelLayerW ; WindowWidth(#WinMain)-(screenX+10-screenW)
   h = screenH 
   If PanelGadget(#G_PanelLayer, x, y, w, h)
   
@@ -259,7 +234,6 @@ Procedure CreateGadgets()
     AddCheckBoxGadget(#G_LayerView, x,y,w2,h2,lang("View"), Lang("Set visible all tiles on the layer")) : x+w2+5
     AddCheckBoxGadget(#G_LayerLock, x,y,w2,h2,lang("Lock"), Lang("Lock all tiles on the layer)")) : y+h2+5
     x=5
-    AddTrackBarGadget(#G_LayerAlpha, x,y,w-15,h2, 0,255,#Empty$, 255, Lang("Alpha:")): y+h2+5
     wl = 160
     If ScrollAreaGadget(#G_LayerList, x, y, wl, 200, wl-22, 200, #PB_ScrollArea_Single)
       If CanvasGadget(#G_LayerListCanvas, 0, 0, wl, 200)
@@ -283,6 +257,7 @@ EndProcedure
 
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x86)
-; CursorPosition = 100
-; Folding = 70Y7FAAR+
+; CursorPosition = 70
+; FirstLine = 12
+; Folding = 5AaAAC9
 ; EnableXP

@@ -53,7 +53,6 @@ Structure sLayer
   depth.w
   view.a
   lock.a
-  alpha.a
   Array Tile.sTile(0)
 EndStructure
 Global LayerId, TileID, tileID_byMouse, NBTile = -1
@@ -86,8 +85,6 @@ Structure sOptions
   GridW.w
   GridH.w
   GridColor.i
-  ShowOrigin.a
-  OriginColor.i
   ; UI
   ToolBarH.a
   PanelLayerW.w
@@ -121,11 +118,6 @@ Structure sOptions
   Layer.a
   UseAlpha.a
   AlphaColor.i
-  CanvasTileSetX.i
-  CanvasTileSetY.i
-  CanvasTileSetW.i
-  CanvasTileSetH.i
-  CanvasTileSetZoom.w
 ;   TilesetCurrentImage$
 
 EndStructure
@@ -138,7 +130,6 @@ With Options
   \PathOpen$ = "save\"
   \PathSave$ = "save\"
   \ColorBG = RGB(100,100,100)
-  \CanvasTileSetZoom = 100
 EndWith
 ;}
 
@@ -154,7 +145,7 @@ Global Action
 
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x86)
-; CursorPosition = 140
-; FirstLine = 72
-; Folding = 54
+; CursorPosition = 120
+; FirstLine = 47
+; Folding = w4
 ; EnableXP

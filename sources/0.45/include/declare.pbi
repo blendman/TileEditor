@@ -30,7 +30,7 @@ Declare TileSet_Add()
 Declare Tile_GetProperties(mode=0)
 Declare Tile_SetProperties(EventGadget)
 Declare Tile_Select(All=1, SelectionType=#Selection_AllTiles)
-Declare Tile_Copy(selected=0)
+Declare Tile_Copy()
 Declare Tile_Paste(x1,y1)
 Declare Tile_Delete(idlayer, idtile, del_Element=1)
 Declare Tile_Erase(mode)
@@ -61,6 +61,6 @@ Declare Screen_DrawGrid()
 
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x86)
-; CursorPosition = 32
+; CursorPosition = 21
 ; FirstLine = 6
 ; EnableXP

@@ -312,8 +312,8 @@ Procedure WinMapProperties()
       x=10
       y=10
       AddGadgetItem(#G_WinMP_Panel, -1, lang("Map"))
-      AddStringGadget(#G_WinMP_mapw,x,y,w,h,Lang("Map width"),Str(MapW)) : x+w+5
-      AddStringGadget(#G_WinMP_maph,x,y,w,h,Lang("Map height"),Str(MapH)) 
+      AddStringGadget(#G_WinMP_mapw,x,y,w,h,Lang("Map width"),Str(MapW*TileW)) : x+w+5
+      AddStringGadget(#G_WinMP_maph,x,y,w,h,Lang("Map height"),Str(MapH*TileH)) 
       y+h+5 : x=10
       AddStringGadget(#G_WinMP_TileW,x,y,w,h,Lang("Set the Snap Width (in X)"),Str(TileW), Lang("Snap X")) : x=GetWidth(#G_WinMP_TileW)+5
       AddStringGadget(#G_WinMP_TileH,x,y,w,h,Lang("Set the Snap height (in Y)"),Str(TileH), Lang("Snap Y"))
@@ -340,12 +340,12 @@ Procedure WinMapProperties()
             Case #G_WinMP_mapw
               w=Val(GetGadgetText(EventGadget))
               If w>=tileW
-                MapW = w
+                MapW = w/tileW
               EndIf
             Case #G_WinMP_maph
               h=Val(GetGadgetText(EventGadget))
               If h>=tileH
-                MapH=h
+                MapH=h/TileH
               EndIf
           EndSelect
         Case #PB_Event_CloseWindow
@@ -363,7 +363,7 @@ EndProcedure
 
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x86)
-; CursorPosition = 347
-; FirstLine = 34
-; Folding = AQAAA5P-
+; CursorPosition = 317
+; FirstLine = 1
+; Folding = AQAAA5B9
 ; EnableXP

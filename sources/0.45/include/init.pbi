@@ -14,7 +14,6 @@ CheckError(UseJPEGImageEncoder(), 1, lang("JPEG Image Encoder error"))
 ;-- LoadImages
 LoadImage2(#ico_IE_Pen, Options\Theme$+"pen.png") 
 LoadImage2(#ico_IE_Brush, Options\Theme$+"brush.png") 
-LoadImage2(#ico_IE_Fill, Options\Theme$+"fill.png") 
 LoadImage2(#ico_IE_Eraser, Options\Theme$+"eraser.png") 
 LoadImage2(#ico_IE_Select, Options\Theme$+"select.png") 
 LoadImage2(#ico_IE_Move, Options\Theme$+"move.png") 
@@ -23,5 +22,5 @@ LoadImage2(#ico_IE_Move, Options\Theme$+"move.png")
 
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x86)
-; CursorPosition = 16
+; CursorPosition = 14
 ; EnableXP

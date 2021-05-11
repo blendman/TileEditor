@@ -51,46 +51,23 @@
 
 ;--- URGENT
 ; - Change Layer tiles (position)
-; - Paste don't verify if a till exist on the x/y position
 
 ;{ CHANGELOG
 ;--- CHANGELOG
 
-; 11.5.2021 (0.4.6)
-;// New
-; - TileSet canvas : add grid
-; - TileSet canvas : we can select several tiles (only preview, not to paint tile on the screen for the moment)
-; - tool Fill
-; - "del" shortcut for Tile_erase()
-; - layer opacity (+trackbar on panel layer)
-; - AddTrackBarGadget()
-;// Changes
-; - some changes in the gadget utilities (AddSpingadget()....)
-; - Fill :verify if a tile exist before to fille the tile
-; FIxes
-; - fixe some bugs with Tile_Fill()
-
 ; 10.5.2021 (0.4.5)
-;// New
-; - add 2 red lines for origin of map (0/0)
 ;// Changes
-; - tool move can now select a tile before to move it
 ; - use options\DirTileset$ when add an new to the image list.
 ; // Fixes
-; - Screen_DrawGrid() : use mapH instead of mapW
-; - Screen_DrawGrid() : line in width doesn't use the zoom
 ; - When change the tileset image, the tileset image is'nt updated if the tileset already exists
 ; - When change the tileset, the image of alphacolor isn't updated
 ; - When change the tileset, the image tileset isn't updated if we change the tileset
 ; - Doc_new : TileSet_UpdateList() isn't updated
 ; - Doc_Open : use not options\PathOpen$
 ; - Doc_Open : Tileset()\tileH was always= 1
-; - Doc_Open : if image\ScaleW/H <= 0 -> =1
 ; - Doc_Save : use not options\PathSave$
 ; - SnapW/H aren't change when change the snapW/H gadgets
 ; - Fixe some bugs when we use a gadget oevr the screen, the eventgagdet does'nt work
-; - map properties : use mapw*tilew instead of mapw (same with mapH)
-; - map properties : bug when save the new mapW/H size
 
 
 
@@ -254,7 +231,7 @@
 
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x86)
-; CursorPosition = 70
-; FirstLine = 42
+; CursorPosition = 69
+; FirstLine = 39
 ; Folding = -
 ; EnableXP

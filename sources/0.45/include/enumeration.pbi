@@ -53,7 +53,6 @@ Enumeration
   ; <-- attention : should be the same order as the action tool !
   #Menu_toolAddTile
   #Menu_toolChangeTile
-  #Menu_toolFill
   #Menu_toolDeleteTile
   #Menu_toolSelectTile
   #Menu_ToolMoveTile
@@ -80,7 +79,6 @@ Enumeration
   ; should be the same order like "actions-Tool" (see at the bottom of enumeration)
   #G_ToolB_Pen
   #G_ToolB_Brush
-  #G_ToolB_Fill
   #G_ToolB_Eraser
   #G_ToolB_Select
   #G_ToolB_Move
@@ -134,7 +132,6 @@ Enumeration
   #G_PanelLayer
   #G_LayerList
   #G_LayerListCanvas
-  #G_LayerAlpha
   #G_LayerView
   #G_LayerLock
   #G_LayerBtnAdd
@@ -221,7 +218,6 @@ Enumeration
   ; <-- attention : should be the same order as the menu tool and the Toolbar Tools !
   #Action_AddTile = 0
   #Action_ChangeTile
-  #Action_Fill
   #Action_DeleteTile
   #Action_SelectTile
   #Action_Move
@@ -240,7 +236,7 @@ EndEnumeration
 
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x86)
-; CursorPosition = 136
-; FirstLine = 39
-; Folding = 6Bw
+; CursorPosition = 106
+; FirstLine = 11
+; Folding = 669
 ; EnableXP

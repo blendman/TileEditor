@@ -5,8 +5,8 @@
 
 ;-- constantes
 XIncludeFile "include\enumeration.pbi"
-#ProgramVersion = "0.46"
-#ProgramVersionNum = 0.4600
+#ProgramVersion = "0.4.5"
+#ProgramVersionNum = 0.4300
 #ProgramRevision = 0
 
 ;-- structure
@@ -38,7 +38,6 @@ XIncludeFile "include\procedures.pbi" ;  screen et sprite & Canvas (main, for re
 ; Menu & StatusBar
 
 ; XIncludeFile "include\gadgets.pbi"
-; XIncludeFile "include\tiles.pbi"
 
 ; Tileset, Layer, Tiles
 ; Screen
@@ -101,14 +100,15 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
       EventMenu   = EventMenu()
       Autosave()
       FPS()
-      
-      ; check if we are over the screen and we haven't an active gadget
       Onscreen = 0
       If gad = 0
         If mx>=0 And mx<=ScreenWidth() And my>=0 And my<=ScreenHeight()
           onscreen=1 ; we are on the screen
+          gad = 0    ; so, not on a gadget
         EndIf
       EndIf
+      SetWindowTitle(0, Str(onscreen))
+      
       gad =0
       
       Select event 
@@ -135,7 +135,7 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
               ;}
               ;{ Edit
             Case #Menu_EditCut
-              Tile_Copy(1)
+               Tile_Copy()
               Tile_Erase(1)
             Case #Menu_EditCopy
               Tile_Copy()
@@ -153,7 +153,23 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
             Case #Menu_EditClearLayer
             	Tile_Erase(2)
             Case #Menu_EditFillWithTile
-              Tile_Fill()
+              For i=0 To mapW/options\snapW -1
+                For j=0 To MapH/options\snapH -1
+                  ; TileID=1+i+(j)*MapH
+                  If i=0 And j=0
+                    tileId = 0
+                  Else
+                    TileID = ArraySize(layer(LayerId)\Tile())+1
+                  EndIf
+                   
+                  ;With Layer(layerID)
+                  ;If Not IsSprite(\sprite)
+                  CreateTheTile(i*options\snapW, j*options\snapH)
+                  ;EndIf
+                  ;EndWith
+                Next
+              Next
+              StatusBarUpdate()
               ;}
               ;{ View
             Case #Menu_ViewShowGrid
@@ -276,9 +292,6 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
                 If EventType() = #PB_EventType_LeftButtonDown 
                   x = GetGadgetAttribute(#G_CanvasTileSet, #PB_Canvas_MouseX)
                   y = GetGadgetAttribute(#G_CanvasTileSet, #PB_Canvas_MouseY)
-                 
-                  Options\CanvasTileSetW = tileW
-                  Options\CanvasTileSetH = tileH
                   If Alt = 1
                     If StartDrawing(CanvasOutput(#G_CanvasTileSet))
                       color = Point(x,y)
@@ -295,18 +308,7 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
                       StopDrawing()
                     EndIf
                   EndIf
-                  Options\CanvasTileSetX = x *TileW
-                  Options\CanvasTileSetY = y *TileH
-                  TileSet_UpdateCanvas(x*TileW, y*TileH)
-                ElseIf (EventType() = #PB_EventType_MouseMove And GetGadgetAttribute(#G_CanvasTileSet, #PB_Canvas_Buttons) & #PB_Canvas_LeftButton)
-                  x = Round(GetGadgetAttribute(#G_CanvasTileSet, #PB_Canvas_MouseX) / TileSet(TilesetCurrent)\TileW, #PB_Round_Up)
-                  y = Round(GetGadgetAttribute(#G_CanvasTileSet, #PB_Canvas_MouseY) / TileSet(TilesetCurrent)\TileH, #PB_Round_Up)
-                  x * TileW
-                  y * TileH
-                  Options\CanvasTileSetW = x - Options\CanvasTileSetX
-                  Options\CanvasTileSetH = y - Options\CanvasTileSetY
-                  Debug Str(Options\CanvasTileSetW)+"/"+Str(Options\CanvasTileSetH)
-                  TileSet_UpdateCanvas(Options\CanvasTileSetX, Options\CanvasTileSetY)
+                  TileSet_UpdateCanvas(x, y)
                 EndIf
                 ;}
                 
@@ -317,9 +319,6 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
               Case #G_LayerLock
                 Layer(layerId)\lock = GetGadgetState(EventGadget)
                 Layer_UpdateList()
-                
-              Case #G_LayerAlpha
-                Layer(layerId)\alpha = GetGadgetState(EventGadget)
                 
               Case #G_LayerView
                 Layer(layerId)\view = GetGadgetState(EventGadget)
@@ -423,7 +422,7 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
     EndIf
     ;}
     
-    If clic >= 1
+    If clic = 1
       If movecanvas =1
         canvasX = mx- oldcanvasX
         canvasY = my- oldcanvasY
@@ -450,10 +449,11 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
         If (x>=0 And y>=0 And x<MapW And y<Maph) Or options\Snap = 0
           
           ; get the TileID
-          If action <> #Action_Move ;  #Action_AddTile Or action = #Action_ChangeTile
+          If action <> #Action_Move
             If layerID <= ArraySize(layer())
               TileID = ArraySize(layer(LayerId)\Tile())+1
             EndIf
+            
            
             j = layerID
             If action = #Action_ChangeTile
@@ -471,17 +471,7 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
                 EndIf
               Next
             EndIf
-          Else
-            If clic = 1
-              If j <=ArraySize(layer())
-                For i = 0 To ArraySize(layer(j)\Tile())
-                  If x1>=layer(j)\Tile(i)\x And x1=<layer(j)\Tile(i)\x+layer(j)\Tile(i)\w And y1>=layer(j)\Tile(i)\y And y1<=layer(j)\Tile(i)\y+layer(j)\Tile(i)\h
-                    TileId = i
-                    Break
-                  EndIf
-                Next
-              EndIf
-            EndIf
+           
           EndIf
           ;Debug tileID
           
@@ -493,10 +483,6 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
               
             Case #Action_ChangeTile 
               CreateTheTile(x, y)
-              
-            Case #Action_Fill
-              Tile_Fill()
-              clic= 2
               
             Case #Action_DeleteTile
               If layerID <= ArraySize(Layer())
@@ -522,9 +508,7 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
               Tile_GetProperties(shift)
               
             Case #Action_Move
-              Tile_GetProperties(shift)
-              Tile_Move(x,y)
-              clic= 2
+            	Tile_Move(x,y)
             
           EndSelect
           If options\Snap = 0
@@ -553,7 +537,7 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
           With Layer(i)\Tile(j)
             If \visible And IsSprite(\sprite)
               ZoomSprite(\sprite, Round(\w *z,#PB_Round_Up), Round(\H *z,#PB_Round_Up))   
-              DisplayTransparentSprite(\sprite,Round(canvasx + \x * z,#PB_Round_Up) , Round(canvasy + \y * z,#PB_Round_Up), Layer(i)\alpha)
+              DisplayTransparentSprite(\sprite,Round(canvasx + \x * z,#PB_Round_Up) , Round(canvasy + \y * z,#PB_Round_Up))
             EndIf
             If \selected And IsSprite(\spriteSelect)
               ZoomSprite(\spriteSelect, Round(\w *z,#PB_Round_Up),  Round(\H *z,#PB_Round_Up))
@@ -565,10 +549,14 @@ If OpenWindow(0, 0, 0, w, h, #ProgramName+#ProgramVersion,
     Next
     
     ; grid
-    Screen_DrawUtilities()
+    If options\Grid
+      If StartDrawing(ScreenOutput())
+        Screen_DrawGrid()
+        StopDrawing()
+      EndIf
       ;ZoomSprite(#sp_Grid, Round(z*(MapW+1)*TileW,#PB_Round_Up) , Round(z*(mapH+1)*tileH, #PB_Round_Up))
       ;DisplayTransparentSprite(#sp_Grid, canvasX, canvasY, 200)
-    
+    EndIf
     
     FlipBuffers()
     ;}
@@ -587,10 +575,10 @@ EndIf
 
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x86)
-; CursorPosition = 8
-; FirstLine = 2
-; Folding = FfjkwwCAOg---9v
+; CursorPosition = 358
+; FirstLine = 107
+; Folding = N-LnAGAAwB9-f3X-
 ; EnableXP
 ; UseIcon = tileeditor.ico
-; Executable = _release\0.45\tileeditor0.45.exe
+; Executable = _release\tileeditor0.3.exe
 ; Warnings = Display
