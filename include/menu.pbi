@@ -114,6 +114,20 @@ EndProcedure
 
 
 ; File
+Procedure VD_GetFileExists(filename$)
+  
+  If FileSize(filename$)<=0
+    ProcedureReturn 0
+  Else
+    If MessageRequester(lang("Info"), lang("The file already exists. Do you want ot overwrite it ?"), #PB_MessageRequester_YesNo) = #PB_MessageRequester_No
+      ProcedureReturn 1
+    Else
+      ProcedureReturn 0
+    EndIf
+  EndIf
+  
+EndProcedure
+
 Procedure Doc_New(window=1)
   ; open a window with some parameters
   If window = 1
@@ -158,7 +172,9 @@ Procedure Doc_Open()
   Filter$ = "All|*.txt;*.ted|tile editor document (*.ted)|*.ted|texte (*.txt)|"
   name$ = OpenFileRequester(Lang("Open a document"), Options\PathOpen$, Filter$, 0)
   If name$<>#Empty$
+    
     ext$ =GetExtensionPart(name$)
+    
     If ReadFile(0, name$)
       d$=","
       Doc_New(0)
@@ -339,21 +355,25 @@ Procedure Doc_Open()
       ;SortStructuredArray(layer(), #PB_Sort_Ascending, OffsetOf(sLayer\depth),  TypeOf(sLayer\depth))
       ;Layer_UpdateList()
     EndIf
+  
   EndIf
 EndProcedure
 Procedure Doc_Save(saveas=0)
   
-  Filter$ = "All|*.txt;*.ted|tile editor document (*.ted)|*.ted|texte (*.txt)|"
+  Filter$ = "All|*.txt;*.ted|tile editor document (*.ted)|*.ted"
   If Options\Docname$ <>#Empty$ And saveas=0
     name$ =Options\Docname$
   Else
     name$ = SaveFileRequester(Lang("Save the document"), options\PathSave$, Filter$, 0)
   EndIf
+  
   If name$<>#Empty$
     ext$ = GetExtensionPart(name$)
     If ext$ <>"txt"
       name$ = RemoveString(name$, ext$)+".txt"
     EndIf
+    
+    If VD_GetFileExists(name$) = 0
     
     If OpenFile(0, name$)
       d$ = ","
@@ -402,6 +422,7 @@ Procedure Doc_Save(saveas=0)
       CloseFile(0)
     EndIf
   EndIf
+  EndIf
   
 EndProcedure
 Procedure Autosave()
@@ -409,7 +430,7 @@ EndProcedure
 
 
 ; IDE Options = PureBasic 5.73 LTS (Windows - x86)
-; CursorPosition = 67
-; FirstLine = 3
-; Folding = Cfw4-+D-8Hu
+; CursorPosition = 375
+; FirstLine = 6
+; Folding = Cew+74f5-vh8
 ; EnableXP
